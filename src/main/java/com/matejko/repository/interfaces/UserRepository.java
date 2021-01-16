@@ -1,9 +1,10 @@
 package com.matejko.repository.interfaces;
 
-import com.matejko.model.entity.User;
+import java.util.Optional;
+
 import org.springframework.data.repository.CrudRepository;
 
-import java.util.Optional;
+import com.matejko.model.entity.User;
 
 /**
  * Created by Mikołaj Matejko on 29.07.2017 as part of ogame-expander

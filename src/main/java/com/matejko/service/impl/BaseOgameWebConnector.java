@@ -1,18 +1,23 @@
 package com.matejko.service.impl;
 
-import com.matejko.model.common.BuildingEnum;
-import com.matejko.model.common.MaterialsEnum;
-import com.matejko.model.common.TabEnum;
-import com.matejko.model.standard.*;
-import com.matejko.service.interfaces.OgameWebConnector;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+
+import com.matejko.model.common.BuildingEnum;
+import com.matejko.model.common.MaterialsEnum;
+import com.matejko.model.common.TabEnum;
+import com.matejko.model.standard.Building;
+import com.matejko.model.standard.DecryptedUser;
+import com.matejko.model.standard.Materials;
+import com.matejko.model.standard.Planet;
+import com.matejko.model.standard.Profile;
+import com.matejko.service.interfaces.OgameWebConnector;
 
 /**
  * Created by Mikołaj Matejko on 29.07.2017 as part of ogame-expander
@@ -21,22 +26,23 @@ public abstract class BaseOgameWebConnector implements OgameWebConnector {
     private final WebDriver webDriver;
     private final WebActions webActions;
 
-    public BaseOgameWebConnector(final String mainUrl) {
-        webDriver = webDriver();
-        webActions = new WebActions(webDriver, mainUrl);
+    public BaseOgameWebConnector(final WebDriver webDriver, final String mainUrl) {
+        this.webDriver = webDriver;
+        this.webActions = new WebActions(webDriver, mainUrl);
     }
-
-    protected abstract WebDriver webDriver();
 
     @Override
     public void logIn(final DecryptedUser user) {
         webActions.goToHomePage();
         webActions.closePopup("openX_interstitial");
-        webActions.clickButton("loginBtn");
-        webActions.setTextBox("usernameLogin", user.getUsername());
-        webActions.setTextBox("passwordLogin", user.getPassword());
-        webActions.setSelectBox("serverLogin", user.getUniversum());
-        webActions.submit("loginSubmit");
+        webActions.sleep(2000);
+        webActions.clickSpan("Login");
+        webActions.setTextBox("email", user.getUsername());
+        webActions.setTextBox("password", user.getPassword());
+        webActions.submit("loginForm");
+        webActions.sleep(2000);
+        webActions.clickSpan("Ostatnia gra");
+        webActions.switchWindows();
     }
 
     @Override
@@ -70,19 +76,23 @@ public abstract class BaseOgameWebConnector implements OgameWebConnector {
     public boolean build(final BuildingEnum buildingEnum) {
         webActions.goToTab(buildingEnum.getType());
 
-        webActions.clickButton(buildingEnum.getId());
+        webActions.clickButton(buildingEnum.getPath());
         webActions.sleep(5000);
 
-        return webActions.clickBuildButton("//*[@id='content']/div[@class='build-it_wrap']/a[@class='build-it']");
+        final var clicked = webActions.clickBuildButton("//*[@class='content']//*[@class='build-it_wrap']/button[@class='upgrade']");
+
+        webActions.sleep(1500);
+
+        return clicked;
     }
 
     @Override
     public void close() {
-        webDriver.close();
+        webDriver.quit();
     }
 
     private Materials collectMaterials() {
-        webActions.sleep(1000);
+        webActions.sleep(2500);
 
         Long metal = material(MaterialsEnum.METAL);
         Long crystal = material(MaterialsEnum.CRYSTAL);
